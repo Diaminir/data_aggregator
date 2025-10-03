@@ -6,6 +6,8 @@ services:
       POSTGRES_DB: ${DB_NAME}
       POSTGRES_USER: ${DB_USER}
       POSTGRES_PASSWORD: ${DB_PASSWORD}
+    ports:
+      - "8081:5432"
     networks:
       - postgres_network
     restart: unless-stopped
@@ -31,7 +33,6 @@ services:
 
 volumes:
   postgres_data:
-  pgadmin_data:
 
 networks:
   postgres_network:

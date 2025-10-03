@@ -68,29 +68,27 @@ info:
 paths:
   /subscriptions:
     get:
-      description: Get a list of all subscriptions
+      description: Получает все записи об подписках
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            items:
-              $ref: '#/definitions/dto.SubRecordWithIdDTO'
-            type: array
+            $ref: '#/definitions/dto.SubRecordWithIdDTO'
         "500":
           description: Internal Server Error
           schema:
             $ref: '#/definitions/dto.MessageDTO'
-      summary: List all subscriptions
+      summary: Лист всех записей
       tags:
       - subscriptions
     post:
       consumes:
       - application/json
-      description: Create a new subscription record
+      description: Создает новую запись о подписке пользователя
       parameters:
-      - description: Subscription data
+      - description: Данные о подписке
         in: body
         name: subscription
         required: true
@@ -102,9 +100,7 @@ paths:
         "201":
           description: Created
           schema:
-            items:
-              $ref: '#/definitions/dto.SubRecordWithIdDTO'
-            type: array
+            $ref: '#/definitions/dto.SubRecordWithIdDTO'
         "400":
           description: Bad Request
           schema:
@@ -113,14 +109,14 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/dto.MessageDTO'
-      summary: Create a new subscription
+      summary: Создание новой записи
       tags:
       - subscriptions
   /subscriptions/{id}:
     delete:
-      description: Delete subscription by ID
+      description: Удаление записи о подписке по ID
       parameters:
-      - description: Subscription ID
+      - description: ID записи
         in: path
         name: id
         required: true
@@ -142,13 +138,13 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/dto.MessageDTO'
-      summary: Delete subscription
+      summary: Удаление записи о подписке
       tags:
       - subscriptions
     get:
-      description: Get subscription details by ID
+      description: Получает запись о подписке по ее ID
       parameters:
-      - description: Subscription ID
+      - description: ID записи
         in: path
         name: id
         required: true
@@ -159,9 +155,7 @@ paths:
         "200":
           description: OK
           schema:
-            items:
-              $ref: '#/definitions/dto.SubRecordWithIdDTO'
-            type: array
+            $ref: '#/definitions/dto.SubRecordWithIdDTO'
         "400":
           description: Bad Request
           schema:
@@ -174,20 +168,20 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/dto.MessageDTO'
-      summary: Get subscription by ID
+      summary: Запись по ID
       tags:
       - subscriptions
     put:
       consumes:
       - application/json
-      description: Update subscription details
+      description: Изменение данных о подписке в записе
       parameters:
-      - description: Subscription ID
+      - description: ID записи
         in: path
         name: id
         required: true
         type: integer
-      - description: Subscription update data
+      - description: Данные для обновление записи
         in: body
         name: subscription
         required: true
@@ -199,9 +193,7 @@ paths:
         "200":
           description: OK
           schema:
-            items:
-              $ref: '#/definitions/dto.SubRecordWithIdDTO'
-            type: array
+            $ref: '#/definitions/dto.SubRecordWithIdDTO'
         "400":
           description: Bad Request
           schema:
@@ -214,29 +206,29 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/dto.MessageDTO'
-      summary: Update subscription
+      summary: Изменение записи
       tags:
       - subscriptions
   /subscriptions/cost:
     get:
-      description: Calculate total cost of subscriptions for a period with optional
-        filters
+      description: Подсчет суммарной стоимости всех подписок за выбранный период и
+        опциональными фильтрами
       parameters:
-      - description: User ID filter
+      - description: Фильтр User ID
         in: query
         name: user_id
         type: string
-      - description: Service name filter
+      - description: Фильтр названия подписки
         in: query
         name: service_name
         type: string
-      - description: Start period (YYYY-MM-DD)
+      - description: Начальная дата (YYYY-MM-DD)
         format: string
         in: query
         name: start_period
         required: true
         type: string
-      - description: End period (YYYY-MM-DD)
+      - description: Конечная дата (YYYY-MM-DD)
         format: string
         in: query
         name: end_period
@@ -257,7 +249,7 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/dto.MessageDTO'
-      summary: Calculate subscription costs
+      summary: Подсчет суммарной стоимости подписок
       tags:
       - subscriptions
 swagger: "2.0"

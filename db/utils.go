@@ -14,19 +14,20 @@ import (
 
 // validateId проверяет наличие введенного id записи, в случает отсутствия возвращает ошибку
 func (pg *Postgres) validateId(ctx context.Context, id int) *ErrorDB {
-	pg.log.Debug("Проверка наличия записи...", id)
+	pg.log.Debug("Проверка наличия записи", "id", id)
 	sqlValidation := `SELECT id 
 					  FROM subscriptions WHERE id = $1`
 	tag, err := pg.db.Exec(ctx, sqlValidation, id)
 	if err != nil || tag.RowsAffected() == 0 {
 		return NewErrorDB(fmt.Errorf("id записи не существует: %s", err), http.StatusNotFound)
 	}
+	pg.log.Debug("Запись обнаружена", "id", id)
 	return nil
 }
 
 // rowsInSlice получает ответ от базы данных в формате pgx.Rows, вычитывает записи из него и заполняет слайс структур для вывода записей пользователю
 func (pg *Postgres) rowsInSlice(rows pgx.Rows) ([]dto.SubRecordWithIdDTO, *ErrorDB) {
-	pg.log.Debug("Запись полученых строк в слайс...")
+	pg.log.Debug("Запись полученых строк в слайс")
 	subRecSlice := []dto.SubRecordWithIdDTO{}
 	for rows.Next() {
 		var (
@@ -47,5 +48,6 @@ func (pg *Postgres) rowsInSlice(rows pgx.Rows) ([]dto.SubRecordWithIdDTO, *Error
 		data := dto.NewSubRecordWithIdDTO(int(id), serviceName, int(price), userIDConv, startDate.Format("2006-01-02"), endDate.Format("2006-01-02"))
 		subRecSlice = append(subRecSlice, data)
 	}
+	pg.log.Debug("Запись полученых строк в слайс прошла успешно")
 	return subRecSlice, nil
 }

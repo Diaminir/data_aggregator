@@ -13,22 +13,19 @@
     "paths": {
         "/subscriptions": {
             "get": {
-                "description": "Get a list of all subscriptions",
+                "description": "Получает все записи об подписках",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
                     "subscriptions"
                 ],
-                "summary": "List all subscriptions",
+                "summary": "Лист всех записей",
                 "responses": {
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/dto.SubRecordWithIdDTO"
-                            }
+                            "$ref": "#/definitions/dto.SubRecordWithIdDTO"
                         }
                     },
                     "500": {
@@ -40,7 +37,7 @@
                 }
             },
             "post": {
-                "description": "Create a new subscription record",
+                "description": "Создает новую запись о подписке пользователя",
                 "consumes": [
                     "application/json"
                 ],
@@ -50,10 +47,10 @@
                 "tags": [
                     "subscriptions"
                 ],
-                "summary": "Create a new subscription",
+                "summary": "Создание новой записи",
                 "parameters": [
                     {
-                        "description": "Subscription data",
+                        "description": "Данные о подписке",
                         "name": "subscription",
                         "in": "body",
                         "required": true,
@@ -66,10 +63,7 @@
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/dto.SubRecordWithIdDTO"
-                            }
+                            "$ref": "#/definitions/dto.SubRecordWithIdDTO"
                         }
                     },
                     "400": {
@@ -89,31 +83,31 @@
         },
         "/subscriptions/cost": {
             "get": {
-                "description": "Calculate total cost of subscriptions for a period with optional filters",
+                "description": "Подсчет суммарной стоимости всех подписок за выбранный период и опциональными фильтрами",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
                     "subscriptions"
                 ],
-                "summary": "Calculate subscription costs",
+                "summary": "Подсчет суммарной стоимости подписок",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "User ID filter",
+                        "description": "Фильтр User ID",
                         "name": "user_id",
                         "in": "query"
                     },
                     {
                         "type": "string",
-                        "description": "Service name filter",
+                        "description": "Фильтр названия подписки",
                         "name": "service_name",
                         "in": "query"
                     },
                     {
                         "type": "string",
                         "format": "string",
-                        "description": "Start period (YYYY-MM-DD)",
+                        "description": "Начальная дата (YYYY-MM-DD)",
                         "name": "start_period",
                         "in": "query",
                         "required": true
@@ -121,7 +115,7 @@
                     {
                         "type": "string",
                         "format": "string",
-                        "description": "End period (YYYY-MM-DD)",
+                        "description": "Конечная дата (YYYY-MM-DD)",
                         "name": "end_period",
                         "in": "query",
                         "required": true
@@ -151,18 +145,18 @@
         },
         "/subscriptions/{id}": {
             "get": {
-                "description": "Get subscription details by ID",
+                "description": "Получает запись о подписке по ее ID",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
                     "subscriptions"
                 ],
-                "summary": "Get subscription by ID",
+                "summary": "Запись по ID",
                 "parameters": [
                     {
                         "type": "integer",
-                        "description": "Subscription ID",
+                        "description": "ID записи",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -172,10 +166,7 @@
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/dto.SubRecordWithIdDTO"
-                            }
+                            "$ref": "#/definitions/dto.SubRecordWithIdDTO"
                         }
                     },
                     "400": {
@@ -199,7 +190,7 @@
                 }
             },
             "put": {
-                "description": "Update subscription details",
+                "description": "Изменение данных о подписке в записе",
                 "consumes": [
                     "application/json"
                 ],
@@ -209,17 +200,17 @@
                 "tags": [
                     "subscriptions"
                 ],
-                "summary": "Update subscription",
+                "summary": "Изменение записи",
                 "parameters": [
                     {
                         "type": "integer",
-                        "description": "Subscription ID",
+                        "description": "ID записи",
                         "name": "id",
                         "in": "path",
                         "required": true
                     },
                     {
-                        "description": "Subscription update data",
+                        "description": "Данные для обновление записи",
                         "name": "subscription",
                         "in": "body",
                         "required": true,
@@ -232,10 +223,7 @@
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/dto.SubRecordWithIdDTO"
-                            }
+                            "$ref": "#/definitions/dto.SubRecordWithIdDTO"
                         }
                     },
                     "400": {
@@ -259,15 +247,15 @@
                 }
             },
             "delete": {
-                "description": "Delete subscription by ID",
+                "description": "Удаление записи о подписке по ID",
                 "tags": [
                     "subscriptions"
                 ],
-                "summary": "Delete subscription",
+                "summary": "Удаление записи о подписке",
                 "parameters": [
                     {
                         "type": "integer",
-                        "description": "Subscription ID",
+                        "description": "ID записи",
                         "name": "id",
                         "in": "path",
                         "required": true

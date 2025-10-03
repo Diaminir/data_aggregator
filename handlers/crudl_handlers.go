@@ -36,6 +36,7 @@ func NewHandlersApp(db *db.Postgres, log *logrus.Logger) *HandlersApp {
 // @Failure 500 {object} dto.MessageDTO
 // @Router /subscriptions [post]
 func (app *HandlersApp) NewSubRecord(c *gin.Context) {
+	app.log.Debug("Начало создания новой записи подписки")
 	var subRecord dto.SubRecordDTO
 
 	if err := c.BindJSON(&subRecord); err != nil {
@@ -44,21 +45,21 @@ func (app *HandlersApp) NewSubRecord(c *gin.Context) {
 		return
 	}
 
+	app.log.Debug("Валидация входных данных")
 	if err := subRecord.ValidateInputData(); err != nil {
 		app.log.WithError(err).Error(ErrorInvalidRequest)
 		c.JSON(http.StatusBadRequest, dto.NewMessageDTO(ErrorInvalidRequest, err))
 		return
 	}
 
+	app.log.Debug("Отправка данных в базу данных для создания записи")
 	subRec, errDB := app.db.PostNewSubRecord(c.Request.Context(), subRecord)
 	if errDB != nil {
 		app.log.WithError(errDB.Err).Error(ErrorDB)
 		c.JSON(errDB.Code, dto.NewMessageDTO(ErrorDB, errDB.Err))
 		return
 	}
-
 	app.log.Infof("Данные успешно записаны: %v", subRec)
-
 	c.JSON(http.StatusCreated, subRec)
 }
 
@@ -74,12 +75,15 @@ func (app *HandlersApp) NewSubRecord(c *gin.Context) {
 // @Failure 500 {object} dto.MessageDTO
 // @Router /subscriptions/{id} [get]
 func (app *HandlersApp) GetUserSubRecord(c *gin.Context) {
+	app.log.Debug("Начало получения записи подписки по ID")
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
 		app.log.WithError(err).Error(ErrorInvalidRecordId)
 		c.JSON(http.StatusBadRequest, dto.NewMessageDTO(ErrorInvalidRecordId, err))
 		return
 	}
+
+	app.log.Debug("Запрос записи из базы данных по ID", "id", id)
 	subRec, errDB := app.db.GetSubRecord(c.Request.Context(), id)
 	if errDB != nil {
 		app.log.WithError(errDB.Err).Error(ErrorDB)
@@ -99,6 +103,7 @@ func (app *HandlersApp) GetUserSubRecord(c *gin.Context) {
 // @Failure 500 {object} dto.MessageDTO
 // @Router /subscriptions [get]
 func (app *HandlersApp) ListAllSubRecords(c *gin.Context) {
+	app.log.Debug("Начало получения всех записей подписок")
 	subRecs, errDB := app.db.GetListSubRecords(c.Request.Context())
 	if errDB != nil {
 		app.log.WithError(errDB.Err).Error(ErrorDB)
@@ -123,6 +128,7 @@ func (app *HandlersApp) ListAllSubRecords(c *gin.Context) {
 // @Failure 500 {object} dto.MessageDTO
 // @Router /subscriptions/{id} [put]
 func (app *HandlersApp) UpdateSubRecord(c *gin.Context) {
+	app.log.Debug("Начало обновления записи подписки")
 	var updateSubRecord dto.UpdateSubRecordDTO
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
@@ -135,18 +141,20 @@ func (app *HandlersApp) UpdateSubRecord(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, dto.NewMessageDTO(ErrorInvalidType, err))
 		return
 	}
+	app.log.Debug("Валидация данных для обновления")
 	if err := updateSubRecord.ValidateUpdateData(); err != nil {
 		app.log.WithError(err).Error(ErrorInvalidRequest)
 		c.JSON(http.StatusBadRequest, dto.NewMessageDTO(ErrorInvalidRequest, err))
 		return
 	}
+	app.log.Debug("Отправка данных в базу данных для обновления записи", "id", id)
 	subRec, errDB := app.db.UpdateSubRecord(c.Request.Context(), id, updateSubRecord)
 	if errDB != nil {
 		app.log.WithError(errDB.Err).Error(ErrorDB)
 		c.JSON(errDB.Code, dto.NewMessageDTO(ErrorDB, errDB.Err))
 		return
 	}
-	// +лог
+	app.log.Infof("Обновление записи подписки успешно завершено: %v", subRec)
 	c.JSON(http.StatusOK, subRec)
 }
 
@@ -161,12 +169,14 @@ func (app *HandlersApp) UpdateSubRecord(c *gin.Context) {
 // @Failure 500 {object} dto.MessageDTO
 // @Router /subscriptions/{id} [delete]
 func (app *HandlersApp) DeleteSubRecord(c *gin.Context) {
+	app.log.Debug("Начало удаления записи подписки")
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
 		app.log.WithError(err).Error(ErrorInvalidRecordId)
 		c.JSON(http.StatusBadRequest, dto.NewMessageDTO(ErrorInvalidRecordId, err))
 		return
 	}
+	app.log.Debug("Отправка запроса на удаление в базу данных", "id", id)
 	if errDB := app.db.DeleteSubRecord(c.Request.Context(), id); errDB != nil {
 		app.log.WithError(errDB.Err).Error(ErrorDB)
 		c.JSON(errDB.Code, dto.NewMessageDTO(ErrorDB, errDB.Err))

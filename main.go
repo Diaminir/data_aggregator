@@ -22,6 +22,7 @@ import (
 // @BasePath /
 func main() {
 	log, file := logger.NewLog()
+
 	cfg, err := config.NewConfig()
 	if err != nil {
 		log.Fatal(err)
@@ -35,6 +36,7 @@ func main() {
 	if err := postgres.RunMigration(); err != nil {
 		log.Fatal(err)
 	}
+
 	handlers := handlers.NewHandlersApp(postgres, log)
 	server := server.NewServer(handlers, log)
 	srv := server.ServerStart()

@@ -14,20 +14,28 @@ func (pg *Postgres) CalculateCost(ctx context.Context, queryParam dto.CostSummar
        		FROM subscriptions
         	WHERE start_date <= $1 
         	AND start_date >= $2`
+
 	args := []interface{}{queryParam.EndPeriod, queryParam.StartPeriod}
 	argPos := 3
+
 	if queryParam.UserID != nil {
 		sql += fmt.Sprintf(" AND user_id = $%d", argPos)
 		args = append(args, *queryParam.UserID)
 		argPos++
 	}
+
 	if queryParam.ServiceName != nil {
 		sql += fmt.Sprintf(" AND service_name = $%d", argPos)
 		args = append(args, *queryParam.ServiceName)
 	}
+
 	var totalCost int
+
 	if err := pg.db.QueryRow(ctx, sql, args...).Scan(&totalCost); err != nil {
 		return dto.CostSummaryRespDTO{}, NewErrorDB(fmt.Errorf("ошибка получения суммарной стоимости подписок из Postgres: %s", err), http.StatusInternalServerError)
 	}
-	return dto.NewCostSummaryRespDTO(totalCost, queryParam), nil
+
+	pg.log.Debug("Формирование ответа с результатами расчета")
+	result := dto.NewCostSummaryRespDTO(totalCost, queryParam)
+	return result, nil
 }
