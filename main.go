@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"junior_effectivemobile/config"
 	"junior_effectivemobile/db"
 	"junior_effectivemobile/handlers"
 	"junior_effectivemobile/logger"
@@ -16,7 +17,11 @@ import (
 func main() {
 	log, file := logger.NewLog()
 	defer file.Close()
-	postgres, err := db.NewConPostgres(log)
+	cfg, err := config.NewConfig()
+	if err != nil {
+		log.Fatal(err)
+	}
+	postgres, err := db.NewConPostgres(log, cfg)
 	if err != nil {
 		fmt.Print(err)
 	}

@@ -3,6 +3,7 @@ package db
 import (
 	"context"
 	"fmt"
+	"junior_effectivemobile/config"
 	"junior_effectivemobile/dto"
 	"strings"
 	"time"
@@ -18,14 +19,16 @@ type Postgres struct {
 	log *logrus.Logger
 }
 
-func NewConPostgres(log *logrus.Logger) (*Postgres, error) {
-	connFig := "postgres://qwert:12345@localhost:8081/subscriptions"
+func NewConPostgres(log *logrus.Logger, cfg *config.Config) (*Postgres, error) {
+	log.Debug("Подключение к серверу Postgres...")
+	connFig := fmt.Sprintf("postgres://%s:%s@%s:%s/%s", cfg.DbUser, cfg.DbPassword, cfg.DbHost, cfg.DbPort, cfg.DbName)
 
 	conn, err := pgx.Connect(context.Background(), connFig)
 	if err != nil {
 		return nil, fmt.Errorf("ошибка подключения к Postgres: %s", err)
 	}
 
+	log.Debug("Начало миграции")
 	sql := `CREATE TABLE IF NOT EXISTS subscriptions
 (
 	id serial PRIMARY KEY,
@@ -35,11 +38,10 @@ func NewConPostgres(log *logrus.Logger) (*Postgres, error) {
     start_date date NOT NULL,
     end_date date NULL
 )`
-
 	if _, err := conn.Exec(context.Background(), sql); err != nil {
 		return nil, err
 	}
-
+	log.Debug("Конец миграции")
 	return &Postgres{
 		db:  conn,
 		log: log,
@@ -47,6 +49,7 @@ func NewConPostgres(log *logrus.Logger) (*Postgres, error) {
 }
 
 func (pg *Postgres) DbClose() {
+	pg.log.Debug("Отключение от сервера Postgres...")
 	pg.db.Close(context.Background())
 }
 
@@ -83,7 +86,7 @@ func (pg *Postgres) GetSubRecord(id int) (dto.SubRecordWithIdDTO, error) {
 }
 
 func (pg *Postgres) GetListSubRecords() ([]dto.SubRecordWithIdDTO, error) {
-	pg.log.Debug("Получение списка записей от базы данных...")
+	pg.log.Debug("Получение списка записей от базы данных")
 	sql := `SELECT id, service_name, price, user_id, start_date, end_date 
 			FROM subscriptions`
 	rowList, err := pg.db.Query(context.Background(), sql)
@@ -101,6 +104,9 @@ func (pg *Postgres) GetListSubRecords() ([]dto.SubRecordWithIdDTO, error) {
 func (pg *Postgres) UpdateSubRecord(id int, updateData dto.UpdateSubRecordDTO) (dto.SubRecordWithIdDTO, error) {
 	pg.log.Debug("Редактиворание записи в базе данных по ID...", id, updateData)
 
+	if errDB := pg.validateId(id); errDB != nil {
+		return dto.SubRecordWithIdDTO{}, errDB
+	}
 	var sql string
 	var conditions []string
 	var args []interface{}
@@ -150,6 +156,9 @@ func (pg *Postgres) UpdateSubRecord(id int, updateData dto.UpdateSubRecordDTO) (
 func (pg *Postgres) DeleteSubRecord(id int) error {
 	pg.log.Debug("Удаление записи из базы данных по ID...", id)
 
+	if err := pg.validateId(id); err != nil {
+		return err
+	}
 	sql := `DELETE FROM subscriptions 
 			WHERE id = $1`
 
@@ -180,6 +189,20 @@ func (pg *Postgres) CalculateCost(queryParam dto.CostSummaryReqDTO) (dto.CostSum
 		return dto.CostSummaryRespDTO{}, err
 	}
 	return dto.NewCostSummaryRespDTO(totalCost, queryParam), nil
+}
+
+func (pg *Postgres) validateId(id int) error {
+	pg.log.Debug("Проверка наличия записи...", id)
+
+	sqlValidation := `SELECT id 
+					  FROM subscriptions WHERE id = $1`
+
+	tag, err := pg.db.Exec(context.Background(), sqlValidation, id)
+	if err != nil || tag.RowsAffected() == 0 {
+		return err
+	}
+
+	return nil
 }
 
 func (pg *Postgres) rowsInSlice(rows pgx.Rows) ([]dto.SubRecordWithIdDTO, error) {

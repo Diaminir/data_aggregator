@@ -44,6 +44,11 @@ func (app *HandlersApp) NewSubRecord(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, dto.NewMessageDTO("Неверный тип данных в запросе", err))
 		return
 	}
+	if err := subRecord.ValidateInputData(); err != nil {
+		app.log.WithError(err).Error("Неверный запрос")
+		c.JSON(http.StatusBadRequest, dto.NewMessageDTO("Неверный запрос", err))
+		return
+	}
 	subRec, err := app.db.PostNewSubRecord(subRecord)
 	if err != nil {
 		app.log.WithError(err).Error("Ошибка работы с БД")
