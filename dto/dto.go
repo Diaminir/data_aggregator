@@ -1,6 +1,9 @@
 package dto
 
 import (
+	"fmt"
+	"time"
+
 	"github.com/google/uuid"
 )
 
@@ -40,4 +43,32 @@ type CostSummaryReqDTO struct {
 type CostSummaryRespDTO struct {
 	TotalCost  int               `json:"total_cost"`
 	QueryParam CostSummaryReqDTO `json:"query_param"`
+}
+
+func NewMessageDTO(message string, err error) *MessageDTO {
+	var str string
+
+	if err != nil {
+		str = fmt.Sprintf("%s: %s", message, err)
+	} else {
+		str = message
+	}
+
+	return &MessageDTO{
+		Message: str,
+		Time:    time.Now().Format("2006-01-02 15:04:05"),
+	}
+}
+
+func NewSubRecordWithIdDTO(id int, serviceName string, price int, userID uuid.UUID, startDate string, endDate string) SubRecordWithIdDTO {
+	return SubRecordWithIdDTO{
+		ID: id,
+		SubRecord: SubRecordDTO{
+			ServiceName: serviceName,
+			Price:       price,
+			UserID:      userID,
+			StartDate:   startDate,
+			EndDate:     endDate,
+		},
+	}
 }
