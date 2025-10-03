@@ -1,0 +1,263 @@
+basePath: /
+definitions:
+  dto.CostSummaryReqDTO:
+    properties:
+      end_period:
+        type: string
+      service_name:
+        type: string
+      start_period:
+        type: string
+      user_id:
+        type: string
+    type: object
+  dto.CostSummaryRespDTO:
+    properties:
+      query_param:
+        $ref: '#/definitions/dto.CostSummaryReqDTO'
+      total_cost:
+        type: integer
+    type: object
+  dto.MessageDTO:
+    properties:
+      message:
+        type: string
+      time:
+        type: string
+    type: object
+  dto.SubRecordDTO:
+    properties:
+      end_date:
+        type: string
+      price:
+        type: integer
+      service_name:
+        type: string
+      start_date:
+        type: string
+      user_id:
+        type: string
+    type: object
+  dto.SubRecordWithIdDTO:
+    properties:
+      id:
+        type: integer
+      subRecord:
+        $ref: '#/definitions/dto.SubRecordDTO'
+    type: object
+  dto.UpdateSubRecordDTO:
+    properties:
+      end_date:
+        type: string
+      price:
+        type: integer
+      service_name:
+        type: string
+      start_date:
+        type: string
+      user_id:
+        type: string
+    type: object
+host: localhost:8080
+info:
+  contact:
+    email: dima.drozdov15@mail.ru
+  description: REST-cервис для агрегации данных об онлайн-подписках пользователей
+  title: Aгрегатор данных
+  version: "1.0"
+paths:
+  /subscriptions:
+    get:
+      description: Get a list of all subscriptions
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/dto.SubRecordWithIdDTO'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.MessageDTO'
+      summary: List all subscriptions
+      tags:
+      - subscriptions
+    post:
+      consumes:
+      - application/json
+      description: Create a new subscription record
+      parameters:
+      - description: Subscription data
+        in: body
+        name: subscription
+        required: true
+        schema:
+          $ref: '#/definitions/dto.SubRecordDTO'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            items:
+              $ref: '#/definitions/dto.SubRecordWithIdDTO'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.MessageDTO'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.MessageDTO'
+      summary: Create a new subscription
+      tags:
+      - subscriptions
+  /subscriptions/{id}:
+    delete:
+      description: Delete subscription by ID
+      parameters:
+      - description: Subscription ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.MessageDTO'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.MessageDTO'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/dto.MessageDTO'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.MessageDTO'
+      summary: Delete subscription
+      tags:
+      - subscriptions
+    get:
+      description: Get subscription details by ID
+      parameters:
+      - description: Subscription ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/dto.SubRecordWithIdDTO'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.MessageDTO'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/dto.MessageDTO'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.MessageDTO'
+      summary: Get subscription by ID
+      tags:
+      - subscriptions
+    put:
+      consumes:
+      - application/json
+      description: Update subscription details
+      parameters:
+      - description: Subscription ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Subscription update data
+        in: body
+        name: subscription
+        required: true
+        schema:
+          $ref: '#/definitions/dto.UpdateSubRecordDTO'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/dto.SubRecordWithIdDTO'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.MessageDTO'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/dto.MessageDTO'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.MessageDTO'
+      summary: Update subscription
+      tags:
+      - subscriptions
+  /subscriptions/cost:
+    get:
+      description: Calculate total cost of subscriptions for a period with optional
+        filters
+      parameters:
+      - description: User ID filter
+        in: query
+        name: user_id
+        type: string
+      - description: Service name filter
+        in: query
+        name: service_name
+        type: string
+      - description: Start period (YYYY-MM-DD)
+        format: string
+        in: query
+        name: start_period
+        required: true
+        type: string
+      - description: End period (YYYY-MM-DD)
+        format: string
+        in: query
+        name: end_period
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.CostSummaryRespDTO'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.MessageDTO'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.MessageDTO'
+      summary: Calculate subscription costs
+      tags:
+      - subscriptions
+swagger: "2.0"

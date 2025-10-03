@@ -7,6 +7,7 @@ import (
 	"github.com/joho/godotenv"
 )
 
+// Config cтруктура для входящей конфигурации с .env файла
 type Config struct {
 	DbHost     string
 	DbPort     string
@@ -15,16 +16,22 @@ type Config struct {
 	DbName     string
 }
 
+// NewConfig функция читает файл конфигурации и на основании ключей заполняет поля структуры Config
 func NewConfig() (*Config, error) {
 	err := godotenv.Load()
 	if err != nil {
 		return nil, errors.New("файл с конфигурацией не найден")
 	}
 	return &Config{
-		DbHost:     os.Getenv("DB_HOST"),
-		DbPort:     os.Getenv("DB_PORT"),
-		DbUser:     os.Getenv("DB_USER"),
-		DbPassword: os.Getenv("DB_PASSWORD"),
-		DbName:     os.Getenv("DB_NAME"),
+		DbHost:     getEnv("DB_HOST"),
+		DbPort:     getEnv("DB_PORT"),
+		DbUser:     getEnv("DB_USER"),
+		DbPassword: getEnv("DB_PASSWORD"),
+		DbName:     getEnv("DB_NAME"),
 	}, nil
+}
+
+// getEnv получает значение из файла по ключу
+func getEnv(key string) string {
+	return os.Getenv(key)
 }

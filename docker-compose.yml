@@ -3,30 +3,35 @@ services:
     image: postgres:latest
     container_name: postgreSQL
     environment:
-      POSTGRES_DB: subscriptions
-      POSTGRES_USER: qwert
-      POSTGRES_PASSWORD: 12345
-    ports:
-      - "8081:5432"
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
     networks:
       - postgres_network
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
+      interval: 1s
+      timeout: 1s
+      retries: 10
 
-  pgadmin:
-    image: dpage/pgadmin4:latest
-    container_name: pgAdminDB
-    environment:
-      PGADMIN_DEFAULT_EMAIL: admin@example.com
-      PGADMIN_DEFAULT_PASSWORD: admin
-      PGADMIN_LISTEN_PORT: 80
+  api:
+    build:
+      context: ./
+      dockerfile: Dockerfile
+    container_name: data_aggregator
     ports:
-      - "9090:80"
+      - "${API_PORT}:8080"
     networks:
       - postgres_network
     restart: unless-stopped
     depends_on:
       postgres:
         condition: service_healthy
+
+volumes:
+  postgres_data:
+  pgadmin_data:
 
 networks:
   postgres_network:
