@@ -6,19 +6,22 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/sirupsen/logrus"
 )
 
 type Server struct {
 	app *handlers.HandlersApp
+	log *logrus.Logger
 }
 
-func NewServer(app *handlers.HandlersApp) *Server {
+func NewServer(app *handlers.HandlersApp, log *logrus.Logger) *Server {
 	return &Server{
 		app: app,
+		log: log,
 	}
 }
 
-func (s *Server) ServerStart() {
+func (s *Server) ServerStart() *http.Server {
 	router := gin.Default()
 
 	api := router.Group("/subscriptions")
@@ -36,7 +39,11 @@ func (s *Server) ServerStart() {
 		Handler: router,
 	}
 
-	if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-		log.Fatal("Ошибка сервера")
-	}
+	go func() {
+		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			log.Fatal("Ошибка сервера")
+		}
+	}()
+
+	return srv
 }

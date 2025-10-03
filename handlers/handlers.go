@@ -7,15 +7,18 @@ import (
 	"strconv"
 
 	"github.com/gin-gonic/gin"
+	"github.com/sirupsen/logrus"
 )
 
 type HandlersApp struct {
-	db *db.Postgres
+	db  *db.Postgres
+	log *logrus.Logger
 }
 
-func NewHandlersApp(db *db.Postgres) *HandlersApp {
+func NewHandlersApp(db *db.Postgres, log *logrus.Logger) *HandlersApp {
 	return &HandlersApp{
-		db: db,
+		db:  db,
+		log: log,
 	}
 }
 
@@ -37,14 +40,17 @@ func (app *HandlersApp) NewSubRecord(c *gin.Context) {
 	var subRecord dto.SubRecordDTO
 
 	if err := c.BindJSON(&subRecord); err != nil {
+		app.log.WithError(err).Error("Неверный тип данных в запросе")
 		c.JSON(http.StatusBadRequest, dto.NewMessageDTO("Неверный тип данных в запросе", err))
 		return
 	}
 	subRec, err := app.db.PostNewSubRecord(subRecord)
 	if err != nil {
+		app.log.WithError(err).Error("Ошибка работы с БД")
 		c.JSON(http.StatusInternalServerError, dto.NewMessageDTO("Ошибка работы с БД", err))
 		return
 	}
+	app.log.Infof("Данные успешно записаны: %v", subRec)
 	c.JSON(http.StatusCreated, subRec)
 }
 
@@ -65,14 +71,17 @@ func (app *HandlersApp) NewSubRecord(c *gin.Context) {
 func (app *HandlersApp) GetUserSubRecord(c *gin.Context) {
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
+		app.log.WithError(err).Error("Неверный id записи")
 		c.JSON(http.StatusBadRequest, dto.NewMessageDTO("Неверный id записи", err))
 		return
 	}
 	subRec, err := app.db.GetSubRecord(id)
 	if err != nil {
+		app.log.WithError(err).Error("Ошибка работы с БД")
 		c.JSON(http.StatusInternalServerError, dto.NewMessageDTO("Ошибка работы с БД", err))
 		return
 	}
+	app.log.Infof("Запись успешно получена: %v", subRec)
 	c.JSON(http.StatusOK, subRec)
 }
 
@@ -93,9 +102,11 @@ func (app *HandlersApp) GetUserSubRecord(c *gin.Context) {
 func (app *HandlersApp) ListAllSubRecords(c *gin.Context) {
 	subRecs, err := app.db.GetListSubRecords()
 	if err != nil {
+		app.log.WithError(err).Error("Ошибка работы с БД")
 		c.JSON(http.StatusInternalServerError, dto.NewMessageDTO("Ошибка работы с БД", err))
 		return
 	}
+	app.log.Infof("Записи успешно получены: %v", subRecs)
 	c.JSON(http.StatusOK, subRecs)
 }
 
@@ -117,15 +128,18 @@ func (app *HandlersApp) UpdateSubRecord(c *gin.Context) {
 	var updateSubRecord dto.UpdateSubRecordDTO
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
+		app.log.WithError(err).Error("Неверный id записи")
 		c.JSON(http.StatusBadRequest, dto.NewMessageDTO("Неверный id записи", err))
 		return
 	}
 	if err := c.BindJSON(&updateSubRecord); err != nil {
+		app.log.WithError(err).Error("Неверный тип данных в запросе")
 		c.JSON(http.StatusBadRequest, dto.NewMessageDTO("Неверный тип данных в запросе", err))
 		return
 	}
 	subRec, err := app.db.UpdateSubRecord(id, updateSubRecord)
 	if err != nil {
+		app.log.WithError(err).Error("Ошибка работы с БД")
 		c.JSON(http.StatusInternalServerError, dto.NewMessageDTO("Ошибка работы с БД", err))
 		return
 	}
@@ -149,13 +163,16 @@ func (app *HandlersApp) UpdateSubRecord(c *gin.Context) {
 func (app *HandlersApp) DeleteSubRecord(c *gin.Context) {
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
+		app.log.WithError(err).Error("Неверный id записи")
 		c.JSON(http.StatusBadRequest, dto.NewMessageDTO("Неверный id записи", err))
 		return
 	}
 	if err := app.db.DeleteSubRecord(id); err != nil {
+		app.log.WithError(err).Error("Ошибка работы с БД")
 		c.JSON(http.StatusInternalServerError, dto.NewMessageDTO("Ошибка работы с БД", err))
 		return
 	}
+	app.log.Info("Запись успешно удалена")
 	c.JSON(http.StatusOK, dto.NewMessageDTO("Запись успешно удалена", nil))
 }
 
@@ -174,5 +191,17 @@ func (app *HandlersApp) DeleteSubRecord(c *gin.Context) {
   - тело ответа: JSON с ошибкой + время
 */
 func (app *HandlersApp) CalculateCost(c *gin.Context) {
-
+	queryParam, err := dto.NewQueryParam(c)
+	if err != nil {
+		app.log.WithError(err).Error("Неверный тип данных в запросе")
+		c.JSON(http.StatusBadRequest, dto.NewMessageDTO("Неверный тип данных в запросе", err))
+		return
+	}
+	costSummary, err := app.db.CalculateCost(queryParam)
+	if err != nil {
+		app.log.WithError(err).Error("Ошибка работы с БД")
+		c.JSON(http.StatusInternalServerError, dto.NewMessageDTO("Ошибка работы с БД", err))
+		return
+	}
+	c.JSON(http.StatusOK, costSummary)
 }

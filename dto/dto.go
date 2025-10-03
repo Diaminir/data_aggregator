@@ -1,9 +1,11 @@
 package dto
 
 import (
+	"errors"
 	"fmt"
 	"time"
 
+	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 )
 
@@ -70,5 +72,43 @@ func NewSubRecordWithIdDTO(id int, serviceName string, price int, userID uuid.UU
 			StartDate:   startDate,
 			EndDate:     endDate,
 		},
+	}
+}
+
+func NewQueryParam(c *gin.Context) (CostSummaryReqDTO, error) {
+	var queryParam CostSummaryReqDTO
+	if userIDStr := c.Query("user_id"); userIDStr != "" {
+		userID, err := uuid.Parse(userIDStr)
+		if err != nil {
+			return CostSummaryReqDTO{}, errors.New("неверный формат userId")
+		}
+		queryParam.UserID = &userID
+	}
+	if serviceName := c.Query("service_name"); serviceName != "" {
+		queryParam.ServiceName = &serviceName
+	}
+	if startPeriodStr := c.Query("start_period"); startPeriodStr != "" {
+		if _, err := time.Parse("2006-01-02", startPeriodStr); err != nil {
+			return CostSummaryReqDTO{}, errors.New("неверный формат даты, используйте YYYY-MM-DD")
+		}
+		queryParam.StartPeriod = startPeriodStr
+	} else {
+		return CostSummaryReqDTO{}, errors.New("введите дату начала периода поиска")
+	}
+	if endPeriodStr := c.Query("end_period"); endPeriodStr != "" {
+		if _, err := time.Parse("2006-01-02", endPeriodStr); err != nil {
+			return CostSummaryReqDTO{}, errors.New("неверный формат даты, используйте YYYY-MM-DD")
+		}
+		queryParam.EndPeriod = endPeriodStr
+	} else {
+		return CostSummaryReqDTO{}, errors.New("введите дату конца периода поиска")
+	}
+	return queryParam, nil
+}
+
+func NewCostSummaryRespDTO(totalCost int, queryParam CostSummaryReqDTO) CostSummaryRespDTO {
+	return CostSummaryRespDTO{
+		TotalCost:  totalCost,
+		QueryParam: queryParam,
 	}
 }

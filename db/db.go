@@ -4,18 +4,21 @@ import (
 	"context"
 	"fmt"
 	"junior_effectivemobile/dto"
+	"strings"
 	"time"
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgtype"
+	"github.com/sirupsen/logrus"
 )
 
 type Postgres struct {
-	db *pgx.Conn
+	db  *pgx.Conn
+	log *logrus.Logger
 }
 
-func NewConPostgres() (*Postgres, error) {
+func NewConPostgres(log *logrus.Logger) (*Postgres, error) {
 	connFig := "postgres://qwert:12345@localhost:8081/subscriptions"
 
 	conn, err := pgx.Connect(context.Background(), connFig)
@@ -38,7 +41,8 @@ func NewConPostgres() (*Postgres, error) {
 	}
 
 	return &Postgres{
-		db: conn,
+		db:  conn,
+		log: log,
 	}, nil
 }
 
@@ -79,6 +83,7 @@ func (pg *Postgres) GetSubRecord(id int) (dto.SubRecordWithIdDTO, error) {
 }
 
 func (pg *Postgres) GetListSubRecords() ([]dto.SubRecordWithIdDTO, error) {
+	pg.log.Debug("Получение списка записей от базы данных...")
 	sql := `SELECT id, service_name, price, user_id, start_date, end_date 
 			FROM subscriptions`
 	rowList, err := pg.db.Query(context.Background(), sql)
@@ -94,18 +99,87 @@ func (pg *Postgres) GetListSubRecords() ([]dto.SubRecordWithIdDTO, error) {
 }
 
 func (pg *Postgres) UpdateSubRecord(id int, updateData dto.UpdateSubRecordDTO) (dto.SubRecordWithIdDTO, error) {
+	pg.log.Debug("Редактиворание записи в базе данных по ID...", id, updateData)
 
-	return dto.SubRecordWithIdDTO{}, nil
+	var sql string
+	var conditions []string
+	var args []interface{}
+	argPos := 1
+	if updateData.ServiceName != nil {
+		conditions = append(conditions, fmt.Sprintf("service_name = $%d", argPos))
+		args = append(args, *updateData.ServiceName)
+		argPos++
+	}
+	if updateData.Price != nil {
+		conditions = append(conditions, fmt.Sprintf("price = $%d", argPos))
+		args = append(args, *updateData.Price)
+		argPos++
+	}
+	if updateData.UserID != nil {
+		conditions = append(conditions, fmt.Sprintf("user_id = $%d", argPos))
+		args = append(args, *updateData.UserID)
+		argPos++
+	}
+	if updateData.StartDate != nil {
+		conditions = append(conditions, fmt.Sprintf("start_date = $%d", argPos))
+		args = append(args, *updateData.StartDate)
+		argPos++
+	}
+	if updateData.EndDate != nil {
+		conditions = append(conditions, fmt.Sprintf("end_date = $%d", argPos))
+		args = append(args, *updateData.EndDate)
+		argPos++
+	}
+	args = append(args, id)
+	end := fmt.Sprintf(" WHERE id = $%d RETURNING *", argPos)
+	if len(conditions) > 0 {
+		sql += "UPDATE subscriptions SET " + strings.Join(conditions, ", ") + end
+	}
+	rowUpdate, err := pg.db.Query(context.Background(), sql, args...)
+	if err != nil {
+		return dto.SubRecordWithIdDTO{}, err
+	}
+	defer rowUpdate.Close()
+	subRec, errDB := pg.rowsInSlice(rowUpdate)
+	if errDB != nil {
+		return dto.SubRecordWithIdDTO{}, errDB
+	}
+	return subRec[0], nil
 }
 
 func (pg *Postgres) DeleteSubRecord(id int) error {
+	pg.log.Debug("Удаление записи из базы данных по ID...", id)
 
+	sql := `DELETE FROM subscriptions 
+			WHERE id = $1`
+
+	if _, err := pg.db.Exec(context.Background(), sql, id); err != nil {
+		return err
+	}
 	return nil
 }
 
 func (pg *Postgres) CalculateCost(queryParam dto.CostSummaryReqDTO) (dto.CostSummaryRespDTO, error) {
-
-	return dto.CostSummaryRespDTO{}, nil
+	sql := `SELECT COALESCE(SUM(price), 0)
+       		FROM subscriptions
+        	WHERE start_date <= $1 
+        	AND start_date >= $2`
+	args := []interface{}{queryParam.EndPeriod, queryParam.StartPeriod}
+	argPos := 3
+	if queryParam.UserID != nil {
+		sql += fmt.Sprintf(" AND user_id = $%d", argPos)
+		args = append(args, *queryParam.UserID)
+		argPos++
+	}
+	if queryParam.ServiceName != nil {
+		sql += fmt.Sprintf(" AND service_name = $%d", argPos)
+		args = append(args, *queryParam.ServiceName)
+	}
+	var totalCost int
+	if err := pg.db.QueryRow(context.Background(), sql, args...).Scan(&totalCost); err != nil {
+		return dto.CostSummaryRespDTO{}, err
+	}
+	return dto.NewCostSummaryRespDTO(totalCost, queryParam), nil
 }
 
 func (pg *Postgres) rowsInSlice(rows pgx.Rows) ([]dto.SubRecordWithIdDTO, error) {
