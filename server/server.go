@@ -33,7 +33,7 @@ func (s *Server) ServerStart() *http.Server {
 		api.POST("", s.app.NewSubRecord)
 		api.GET("", s.app.ListAllSubRecords)
 		api.GET("/:id", s.app.GetUserSubRecord)
-		api.PUT("/:id", s.app.UpdateSubRecord)
+		api.PATCH("/:id", s.app.UpdateSubRecord)
 		api.DELETE("/:id", s.app.DeleteSubRecord)
 		api.GET("/cost", s.app.CalculateCost)
 	}
