@@ -8,6 +8,7 @@ import (
 	"junior_effectivemobile/handlers"
 	"junior_effectivemobile/logger"
 	"junior_effectivemobile/server"
+	"log"
 	"os"
 	"os/signal"
 	"syscall"
@@ -21,13 +22,13 @@ import (
 // @host localhost:8080
 // @BasePath /
 func main() {
-	log, file := logger.NewLog()
-
 	cfg, err := config.NewConfig()
 	if err != nil {
 		log.Fatal(err)
 	}
+	log, file := logger.NewLog(cfg)
 	defer file.Close()
+
 	postgres, err := db.NewConPostgres(log, cfg)
 	if err != nil {
 		log.Fatal(err)

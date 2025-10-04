@@ -14,6 +14,7 @@ type Config struct {
 	DbUser     string
 	DbPassword string
 	DbName     string
+	LogLevel   string
 }
 
 // NewConfig функция читает файл конфигурации и на основании ключей заполняет поля структуры Config
@@ -23,15 +24,11 @@ func NewConfig() (*Config, error) {
 		return nil, errors.New("файл с конфигурацией не найден")
 	}
 	return &Config{
-		DbHost:     getEnv("DB_HOST"),
-		DbPort:     getEnv("DB_PORT"),
-		DbUser:     getEnv("DB_USER"),
-		DbPassword: getEnv("DB_PASSWORD"),
-		DbName:     getEnv("DB_NAME"),
+		DbHost:     os.Getenv("DB_HOST"),
+		DbPort:     os.Getenv("DB_PORT"),
+		DbUser:     os.Getenv("DB_USER"),
+		DbPassword: os.Getenv("DB_PASSWORD"),
+		DbName:     os.Getenv("DB_NAME"),
+		LogLevel:   os.Getenv("LOG_LEVEL"),
 	}, nil
-}
-
-// getEnv получает значение из файла по ключу
-func getEnv(key string) string {
-	return os.Getenv(key)
 }
