@@ -9,7 +9,7 @@ import (
 )
 
 func (pg *Postgres) PostNewSubRecord(ctx context.Context, rec dto.SubRecordDTO) (dto.SubRecordWithIdDTO, *ErrorDB) {
-	pg.log.Debug("Начало создания новой записи подписки", rec)
+	pg.log.Debug("Начало создания новой записи подписки: ", rec)
 
 	sql := `INSERT INTO subscriptions(service_name, price, user_id, start_date, end_date) 
 			VALUES ($1,$2,$3,$4,$5)
@@ -26,13 +26,13 @@ func (pg *Postgres) PostNewSubRecord(ctx context.Context, rec dto.SubRecordDTO) 
 		return dto.SubRecordWithIdDTO{}, errDB
 	}
 
-	pg.log.Debug("Данные в бд записаны", subRec[0])
+	pg.log.Debug("Данные в бд записаны: ", subRec[0])
 	return subRec[0], nil
 }
 
 // GetSubRecord получает запись по ее id в базе данных
 func (pg *Postgres) GetSubRecord(ctx context.Context, id int) (dto.SubRecordWithIdDTO, *ErrorDB) {
-	pg.log.Debug("Получение записи от базы данных по ID", id)
+	pg.log.Debugf("Получение записи от базы данных по id = %d", id)
 
 	if errDB := pg.validateId(ctx, id); errDB != nil {
 		return dto.SubRecordWithIdDTO{}, errDB
@@ -53,7 +53,7 @@ func (pg *Postgres) GetSubRecord(ctx context.Context, id int) (dto.SubRecordWith
 		return dto.SubRecordWithIdDTO{}, errDB
 	}
 
-	pg.log.Debug("Данные из бд получены", subRec[0])
+	pg.log.Debug("Данные из бд получены: ", subRec[0])
 	return subRec[0], nil
 }
 
@@ -75,13 +75,13 @@ func (pg *Postgres) GetListSubRecords(ctx context.Context) ([]dto.SubRecordWithI
 		return []dto.SubRecordWithIdDTO{}, errDB
 	}
 
-	pg.log.Debug("Данные из бд получены", "количество записей", len(subRec))
+	pg.log.Debugf("Данные из бд получены: количество записей = %d", len(subRec))
 	return subRec, nil
 }
 
 // UpdateSubRecord позволяет редактировать запись по id, меняет данные на данные в структуре updateData и возвращает измененную запись
 func (pg *Postgres) UpdateSubRecord(ctx context.Context, id int, updateData dto.UpdateSubRecordDTO) (dto.SubRecordWithIdDTO, *ErrorDB) {
-	pg.log.Debug("Начало редактирования записи в базе данных", "id", id, "updateData", updateData)
+	pg.log.Debugf("Начало редактирования записи в базе данных id = %d, updateData = %v", id, updateData)
 
 	if errDB := pg.validateId(ctx, id); errDB != nil {
 		return dto.SubRecordWithIdDTO{}, errDB
@@ -135,13 +135,13 @@ func (pg *Postgres) UpdateSubRecord(ctx context.Context, id int, updateData dto.
 		return dto.SubRecordWithIdDTO{}, errDB
 	}
 
-	pg.log.Debug("Редактирование записи завершено успешно", "id", id, "result", subRec[0])
+	pg.log.Debugf("Редактирование записи завершено успешно id = %d, обновленная задача = %v", id, subRec[0])
 	return subRec[0], nil
 }
 
 // DeleteSubRecord удаляет запись из базы данных по ее id
 func (pg *Postgres) DeleteSubRecord(ctx context.Context, id int) *ErrorDB {
-	pg.log.Debug("Начало удаления записи из базы данных", "id", id)
+	pg.log.Debugf("Начало удаления записи из базы данных id = %d", id)
 
 	if err := pg.validateId(ctx, id); err != nil {
 		return err
@@ -154,6 +154,6 @@ func (pg *Postgres) DeleteSubRecord(ctx context.Context, id int) *ErrorDB {
 		return NewErrorDB(fmt.Errorf("ошибка удаления данных из Postgres: %s", err), http.StatusInternalServerError)
 	}
 
-	pg.log.Debug("Запись успешно удалена", "id", id)
+	pg.log.Debugf("Запись успешно удалена id = %d", id)
 	return nil
 }

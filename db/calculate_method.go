@@ -9,7 +9,7 @@ import (
 
 // CalculateCost производит подсчет суммарной стоимости всех подписок с применением фильтров из структуры queryParam и возвращает структуру с суммарной стоимость и фильтрами
 func (pg *Postgres) CalculateCost(ctx context.Context, queryParam dto.CostSummaryReqDTO) (dto.CostSummaryRespDTO, *ErrorDB) {
-	pg.log.Debug("Данные от хэндлера получены", queryParam)
+	pg.log.Debug("Данные от хэндлера получены: ", queryParam)
 	sql := `SELECT COALESCE(SUM(price), 0)
        		FROM subscriptions
         	WHERE start_date <= $1 

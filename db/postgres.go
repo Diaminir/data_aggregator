@@ -20,11 +20,7 @@ func NewConPostgres(log *logrus.Logger, cfg *config.Config) (*Postgres, error) {
 	log.Debug("Начало подключения к серверу Postgres")
 
 	connFig := fmt.Sprintf("postgres://%s:%s@%s:%s/%s", cfg.DbUser, cfg.DbPassword, cfg.DbHost, cfg.DbPort, cfg.DbName)
-	log.Debug("Формирование строки подключения",
-		"host", cfg.DbHost,
-		"port", cfg.DbPort,
-		"database", cfg.DbName,
-		"user", cfg.DbUser)
+	log.Debugf("Формирование строки подключения host = %s, port = %s, database = %s, user = %s", cfg.DbHost, cfg.DbPort, cfg.DbName, cfg.DbUser)
 
 	conn, err := pgx.Connect(context.Background(), connFig)
 	if err != nil {

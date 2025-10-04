@@ -41,7 +41,7 @@ func main() {
 	handlers := handlers.NewHandlersApp(postgres, log)
 	server := server.NewServer(handlers, log)
 	srv := server.ServerStart()
-
+	log.Warn("Сервер начал свою работу")
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
 	<-quit

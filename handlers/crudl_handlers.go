@@ -83,7 +83,7 @@ func (app *HandlersApp) GetUserSubRecord(c *gin.Context) {
 		return
 	}
 
-	app.log.Debug("Запрос записи из базы данных по ID", "id", id)
+	app.log.Debugf("Запрос записи из базы данных по ID: id = %d", id)
 	subRec, errDB := app.db.GetSubRecord(c.Request.Context(), id)
 	if errDB != nil {
 		app.log.WithError(errDB.Err).Error(ErrorDB)
@@ -147,7 +147,7 @@ func (app *HandlersApp) UpdateSubRecord(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, dto.NewMessageDTO(ErrorInvalidRequest, err))
 		return
 	}
-	app.log.Debug("Отправка данных в базу данных для обновления записи", "id", id)
+	app.log.Debugf("Отправка данных в базу данных для обновления записи: id = %d", id)
 	subRec, errDB := app.db.UpdateSubRecord(c.Request.Context(), id, updateSubRecord)
 	if errDB != nil {
 		app.log.WithError(errDB.Err).Error(ErrorDB)
@@ -176,7 +176,7 @@ func (app *HandlersApp) DeleteSubRecord(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, dto.NewMessageDTO(ErrorInvalidRecordId, err))
 		return
 	}
-	app.log.Debug("Отправка запроса на удаление в базу данных", "id", id)
+	app.log.Debugf("Отправка запроса на удаление в базу данных: id = %d", id)
 	if errDB := app.db.DeleteSubRecord(c.Request.Context(), id); errDB != nil {
 		app.log.WithError(errDB.Err).Error(ErrorDB)
 		c.JSON(errDB.Code, dto.NewMessageDTO(ErrorDB, errDB.Err))

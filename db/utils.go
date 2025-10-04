@@ -14,20 +14,20 @@ import (
 
 // validateId проверяет наличие введенного id записи, в случает отсутствия возвращает ошибку
 func (pg *Postgres) validateId(ctx context.Context, id int) *ErrorDB {
-	pg.log.Debug("Проверка наличия записи", "id", id)
+	pg.log.Debugf("Проверка наличия записи: id = %d", id)
 	sqlValidation := `SELECT id 
 					  FROM subscriptions WHERE id = $1`
 	tag, err := pg.db.Exec(ctx, sqlValidation, id)
 	if err != nil || tag.RowsAffected() == 0 {
 		return NewErrorDB(fmt.Errorf("id записи не существует: %s", err), http.StatusNotFound)
 	}
-	pg.log.Debug("Запись обнаружена", "id", id)
+	pg.log.Debugf("Запись обнаружена id = %d", id)
 	return nil
 }
 
 // rowsInSlice получает ответ от базы данных в формате pgx.Rows, вычитывает записи из него и заполняет слайс структур для вывода записей пользователю
 func (pg *Postgres) rowsInSlice(rows pgx.Rows) ([]dto.SubRecordWithIdDTO, *ErrorDB) {
-	pg.log.Debug("Запись полученых строк в слайс")
+	pg.log.Debug("Обработка полученныйх строк и запись в слайс")
 	subRecSlice := []dto.SubRecordWithIdDTO{}
 	for rows.Next() {
 		var (

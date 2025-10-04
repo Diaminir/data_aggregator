@@ -21,17 +21,20 @@ import (
 // @Failure 500 {object} dto.MessageDTO
 // @Router /subscriptions/cost [get]
 func (app *HandlersApp) CalculateCost(c *gin.Context) {
+	app.log.Debug("Начало подсчета суммарной стоимости по фильтрам")
 	queryParam, err := dto.NewQueryParam(c)
 	if err != nil {
 		app.log.WithError(err).Error(ErrorInvalidRequest)
 		c.JSON(http.StatusBadRequest, dto.NewMessageDTO(ErrorInvalidRequest, err))
 		return
 	}
+	app.log.Debug("Обращение к базе данных для расчета")
 	costSummary, errDB := app.db.CalculateCost(c.Request.Context(), queryParam)
 	if errDB != nil {
 		app.log.WithError(errDB.Err).Error(ErrorDB)
 		c.JSON(errDB.Code, dto.NewMessageDTO(ErrorDB, err))
 		return
 	}
+	app.log.Infof("Сумма подписок за период с фильтрами получена: %v", costSummary)
 	c.JSON(http.StatusOK, costSummary)
 }
