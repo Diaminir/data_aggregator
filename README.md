@@ -19,7 +19,7 @@ DB_NAME=subscriptions
 
 #api/log level = debug/info
 API_PORT=8080
-LOG_LEVEL=debug
+LOG_LEVEL=info
 ```
 
 ## Запуск
